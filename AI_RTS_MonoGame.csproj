@@ -38,15 +38,27 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="CollisionDetection\BoundingShapes.cs" />
-    <Compile Include="CollisionDetection\CollisionResponse.cs" />
-    <Compile Include="Controllers\AIController.cs" />
-    <Compile Include="Controllers\ArmyController.cs" />
-    <Compile Include="CollisionDetection\CollisionHandler.cs" />
-    <Compile Include="GameObjects\IAttackable.cs" />
-    <Compile Include="GameObjects\ISelectable.cs" />
+    <Compile Include="GameObjects\Attackables\Buildings\Barracks.cs" />
+    <Compile Include="Unused\CollisionDetection\BoundingShapes.cs" />
+    <Compile Include="Unused\CollisionDetection\CollisionResponse.cs" />
+    <Compile Include="AI\Controllers\AIController.cs" />
+    <Compile Include="AI\Controllers\ArmyController.cs" />
+    <Compile Include="Unused\CollisionDetection\CollisionHandler.cs" />
+    <Compile Include="Game base\UnitTypes.cs" />
+    <Compile Include="GameObjects\Attackables\Attackable.cs" />
+    <Compile Include="GameObjects\Attackables\Buildings\Base.cs" />
+    <Compile Include="GameObjects\Attackables\Buildings\Building.cs" />
+    <Compile Include="GameObjects\Attackables\DelayedDamage.cs" />
+    <Compile Include="VFX\Particle.cs" />
+    <Compile Include="VFX\ParticleEmitter.cs" />
+    <Compile Include="VFX\ProjectileEffect.cs" />
+    <Compile Include="VFX\VisualEffect.cs" />
+    <Compile Include="VFX\VisualEffectsManager.cs" />
+    <Compile Include="GameObjects\Attackables\IAttackable.cs" />
+    <Compile Include="GameObjects\Attackables\Units\UnitFactory.cs" />
     <Compile Include="Utility\AssetManager.cs" />
-    <Compile Include="CollisionDetection\CollisionDetection.cs" />
+    <Compile Include="Unused\CollisionDetection\CollisionDetection.cs" />
+    <Compile Include="Utility\AttackableHelper.cs" />
     <Compile Include="Utility\DebugDraw.cs" />
     <Compile Include="Game base\Game1.cs" />
     <Compile Include="GameObjects\GameObject.cs" />
@@ -57,13 +69,13 @@
     <Compile Include="Grid\Path.cs" />
     <Compile Include="Grid\Pathfinder.cs" />
     <Compile Include="Unused\PathfindingNode.cs" />
-    <Compile Include="Controllers\PlayerController.cs" />
+    <Compile Include="AI\Controllers\PlayerController.cs" />
     <Compile Include="Unused\PriorityQueue.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Grid\Tile.cs" />
-    <Compile Include="GameObjects\Unit.cs" />
-    <Compile Include="Controllers\UnitController.cs" />
+    <Compile Include="GameObjects\Attackables\Units\Unit.cs" />
+    <Compile Include="AI\Controllers\UnitController.cs" />
     <Compile Include="Utility\VectorMath.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -78,6 +90,16 @@
   </ItemGroup>
   <ItemGroup>
     <MonoGameContentReference Include="Content\Content.mgcb" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Farseer Physics Engine 3.5\Farseer Physics MonoGame.csproj">
+      <Project>{0aad36e3-51a5-4a07-ab60-5c8a66bd38b7}</Project>
+      <Name>Farseer Physics MonoGame</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="AI\FSM\" />
+    <Folder Include="AI\Planner\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\MonoGame\v3.0\MonoGame.Content.Builder.targets" />

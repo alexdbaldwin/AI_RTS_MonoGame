@@ -56,7 +56,13 @@ namespace AI_RTS_MonoGame
 
         public float GetLength()
         {
-            throw new NotImplementedException();
+            float pathLength = 0;
+            for (int i = 1; i < points.Count; i++)
+            {
+                float segmentLength = Vector2.Distance(points[i - 1], points[i]);
+                pathLength += segmentLength;
+            }
+            return pathLength;
         }
 
         public float GetParam(Vector2 pos, float prevParam){

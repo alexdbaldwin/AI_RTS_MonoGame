@@ -36,7 +36,7 @@ namespace AI_RTS_MonoGame
             if (KeyMouseReader.LeftClickInPlace())
             {
                 selection.Clear();
-                ISelectable s = gm.ClickSelect(KeyMouseReader.mouseState.Position.ToVector2());
+                IAttackable s = gm.ClickSelect(KeyMouseReader.mouseState.Position.ToVector2());
                 if(s != null)
                     selection.Add(s);
                 selectionBox = new Rectangle();
@@ -49,7 +49,7 @@ namespace AI_RTS_MonoGame
 
             //UGLY!!!
             if (KeyMouseReader.RightClick()) {
-                foreach (ISelectable s in selection)
+                foreach (IAttackable s in selection)
                 {
                     if(s is Unit)
                         (s as Unit).Controller.FollowPath(gm.GetPath((s as Unit).Position, KeyMouseReader.mouseState.Position.ToVector2()));

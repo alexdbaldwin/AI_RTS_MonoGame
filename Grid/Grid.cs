@@ -1,4 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+﻿using FarseerPhysics;
+using FarseerPhysics.Dynamics;
+using FarseerPhysics.Factories;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
@@ -12,17 +15,18 @@ namespace AI_RTS_MonoGame
     {
         int xDimension, yDimension;
         Tile[,] tiles;
-        float tileSize = 20.0f;
+        public static float TileSize = 20.0f;
         Pathfinder pathfinder;
+        List<Body> tileBodies = new List<Body>();
 
 
         public Rectangle Bounds {
             get {
-                return new Rectangle(0,0,(int)(xDimension*tileSize),(int)(yDimension*tileSize));
+                return new Rectangle(0,0,(int)(xDimension*TileSize),(int)(yDimension*TileSize));
             }
         }
 
-        public Grid() {
+        public Grid(World world) {
             using (StreamReader sr = new StreamReader("testmap.txt")) {
                 List<string> lines = new List<string>();
                 while (!sr.EndOfStream) {
@@ -35,21 +39,40 @@ namespace AI_RTS_MonoGame
                 {
                     for (int j = 0; j < yDimension; j++)
                     {
-                        tiles[i, j] = new Tile(i, j, new Rectangle((int)(i*tileSize),(int)(j*tileSize),(int)tileSize,(int)tileSize));
+                        tiles[i, j] = new Tile(i, j, new Rectangle((int)(i*TileSize),(int)(j*TileSize),(int)TileSize,(int)TileSize));
                         if (lines[j][i] == '#')
+                        {
                             tiles[i, j].passable = false;
+                            Body body = BodyFactory.CreateRectangle(world, ConvertUnits.ToSimUnits(TileSize), ConvertUnits.ToSimUnits(TileSize), 10, ConvertUnits.ToSimUnits(GetWindowCenterPos(tiles[i, j])));
+                            body.BodyType = BodyType.Static;
+                            body.CollidesWith = Category.All;
+                            body.CollisionCategories = Category.All;
+                            tileBodies.Add(body);
+                        }
+                            
                     }
                 }
 
             }
+
+            AssignNeighbours();
+
+            pathfinder = new Pathfinder(this);
+
+        }
+
+        public void AssignNeighbours()
+        {
+            foreach (Tile t in tiles)
+                t.neighbours.Clear();
 
             //Set up neighbours for pathfinding
             for (int i = 0; i < xDimension; i++)
             {
                 for (int j = 0; j < yDimension; j++)
                 {
-                    if (i > 0 && tiles[i-1, j].passable)
-                        tiles[i, j].neighbours.Add(tiles[i-1, j]);
+                    if (i > 0 && tiles[i - 1, j].passable)
+                        tiles[i, j].neighbours.Add(tiles[i - 1, j]);
                     if (j > 0 && tiles[i, j - 1].passable)
                         tiles[i, j].neighbours.Add(tiles[i, j - 1]);
                     if (i < xDimension - 1 && tiles[i + 1, j].passable)
@@ -58,9 +81,6 @@ namespace AI_RTS_MonoGame
                         tiles[i, j].neighbours.Add(tiles[i, j + 1]);
                 }
             }
-
-            pathfinder = new Pathfinder(this);
-
         }
 
         public bool LineOfSight(Vector2 start, Vector2 end) {
@@ -68,10 +88,10 @@ namespace AI_RTS_MonoGame
         }
 
         public bool LineOfSight(float startX, float startY, float endX, float endY) {
-            int x = (int)(startX / tileSize);
-            int y = (int)(startY / tileSize);
-            int xEnd = (int)(endX / tileSize);
-            int yEnd = (int)(endY / tileSize);
+            int x = (int)(startX / TileSize);
+            int y = (int)(startY / TileSize);
+            int xEnd = (int)(endX / TileSize);
+            int yEnd = (int)(endY / TileSize);
 
             if (x == xEnd && y == yEnd)
             {
@@ -98,8 +118,8 @@ namespace AI_RTS_MonoGame
             }
             else
             {
-                tMaxX = (((float)((x + (stepX == 1 ? 1 : 0))) * tileSize) - startX) / v.X;
-                tDeltaX = (float)stepX * tileSize / v.X;
+                tMaxX = (((float)((x + (stepX == 1 ? 1 : 0))) * TileSize) - startX) / v.X;
+                tDeltaX = (float)stepX * TileSize / v.X;
             }
             if (Math.Abs(v.Y) < 0.001f)
             {
@@ -108,8 +128,8 @@ namespace AI_RTS_MonoGame
             }
             else
             {
-                tMaxY = (((float)((y + (stepY == 1 ? 1 : 0))) * tileSize) - startY) / v.Y;
-                tDeltaY = (float)stepY * ((float)tileSize) / v.Y;
+                tMaxY = (((float)((y + (stepY == 1 ? 1 : 0))) * TileSize) - startY) / v.Y;
+                tDeltaY = (float)stepY * ((float)TileSize) / v.Y;
             }
 
             do
@@ -133,10 +153,10 @@ namespace AI_RTS_MonoGame
         }
 
         public bool LineOfSight(Tile start, Tile end) {
-            float startX = (start.gridX + 0.5f) * tileSize;
-            float startY = (start.gridY + 0.5f) * tileSize;
-            float endX = (end.gridX + 0.5f) * tileSize;
-            float endY = (end.gridY + 0.5f) * tileSize;
+            float startX = (start.gridX + 0.5f) * TileSize;
+            float startY = (start.gridY + 0.5f) * TileSize;
+            float endX = (end.gridX + 0.5f) * TileSize;
+            float endY = (end.gridY + 0.5f) * TileSize;
             return LineOfSight(startX, startY, endX, endY);	        
         }
 
@@ -173,7 +193,7 @@ namespace AI_RTS_MonoGame
                     p.AddPoint(end);
                     return p;
                 }
-                return FindPath(tiles[(int)(start.X / tileSize), (int)(start.Y / tileSize)], tiles[(int)(end.X / tileSize), (int)(end.Y / tileSize)]);
+                return FindPath(tiles[(int)(start.X / TileSize), (int)(start.Y / TileSize)], tiles[(int)(end.X / TileSize), (int)(end.Y / TileSize)]);
             }
             return null;
 
@@ -195,7 +215,7 @@ namespace AI_RTS_MonoGame
             for (int i = 0; i < xDimension; i++) {
                 for (int j = 0; j < yDimension; j++) {
                    
-                    spriteBatch.Draw(AssetManager.GetTexture("pixel"), new Rectangle((int)(i * tileSize), (int)(j * tileSize), (int)tileSize, (int)tileSize), tiles[i, j].passable ? Color.White : Color.Black);
+                    spriteBatch.Draw(AssetManager.GetTexture("pixel"), new Rectangle((int)(i * TileSize), (int)(j * TileSize), (int)TileSize, (int)TileSize), tiles[i, j].passable ? Color.LightGreen : Color.Black);
                 }
             }
             //for(int i = 0; i < testPath.PointCount(); i++)
@@ -206,21 +226,31 @@ namespace AI_RTS_MonoGame
             
         }
 
-        public CollisionResponse CollisionCheck(Unit u) {
-            foreach(Tile t in tiles) {
-                if (t.passable)
-                    continue;
-                CollisionResponse cr = CollisionDetection.CollisionCheck(u.boundingCircle, t.bounds);
-                if (cr.collided)
-                    return cr;
-            }
-            CollisionResponse result = new CollisionResponse();
-            result.collided = false;
-            return result;
-        }
+        //public CollisionResponse CollisionCheck(Unit u) {
+        //    foreach(Tile t in tiles) {
+        //        if (t.passable)
+        //            continue;
+        //        CollisionResponse cr = CollisionDetection.CollisionCheck(u.boundingCircle, t.bounds);
+        //        if (cr.collided)
+        //            return cr;
+        //    }
+        //    CollisionResponse result = new CollisionResponse();
+        //    result.collided = false;
+        //    return result;
+        //}
 
         public Vector2 GetWindowCenterPos(Tile t) {
-            return new Vector2((t.gridX + 0.5f) * tileSize, (t.gridY + 0.5f) * tileSize);
+            return new Vector2((t.gridX + 0.5f) * TileSize, (t.gridY + 0.5f) * TileSize);
+        }
+
+        public void BlockTile(int x, int y) 
+        {
+            tiles[x, y].passable = false;
+        }
+
+        public void UnblockTile(int x, int y)
+        {
+            tiles[x, y].passable = true;
         }
 
     }

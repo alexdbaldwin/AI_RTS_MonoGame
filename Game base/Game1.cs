@@ -49,6 +49,7 @@ namespace AI_RTS_MonoGame
             pixelTex.SetData(new[] { Color.White });
             AssetManager.AddTexture("pixel", pixelTex);
             AssetManager.AddTexture("circle_100x100", Content.Load<Texture2D>("circle_100x100"));
+            AssetManager.AddTexture("softparticle", Content.Load<Texture2D>("softparticle"));
 
             gm = new GameplayManager(Window);
         }

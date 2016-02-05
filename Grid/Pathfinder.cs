@@ -32,7 +32,7 @@ namespace AI_RTS_MonoGame
 
         public Path FindPath(Tile start, Tile end) {
 
-            if (!start.passable) {
+            if (!start.passable || !end.passable) {
                 Path p1 = new Path();
                 p1.AddPoint(grid.GetWindowCenterPos(start));
                 return p1;

@@ -10,7 +10,7 @@ namespace AI_RTS_MonoGame
     abstract class ArmyController
     {
         protected GameplayManager gm;
-        protected List<ISelectable> selection = new List<ISelectable>();
+        protected List<IAttackable> selection = new List<IAttackable>();
         protected int faction;
 
         public int Faction {
@@ -25,6 +25,10 @@ namespace AI_RTS_MonoGame
         }
 
         public abstract void Update(GameTime gameTime);
+
+        public virtual void Deselect(IAttackable s) {
+            selection.Remove(s);
+        }
 
     }
 }

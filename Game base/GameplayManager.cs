@@ -1,135 +1,147 @@
-﻿using Microsoft.Xna.Framework;
+﻿using FarseerPhysics;
+using FarseerPhysics.Dynamics;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+
 namespace AI_RTS_MonoGame
 {
     class GameplayManager
     {
+        public static readonly bool drawDebug = true;
+
+
         GameWindow window;
         Grid grid;
         ArmyController armyController;
-        List<GameObject> gameObjects = new List<GameObject>();
         List<UnitController> controllers = new List<UnitController>();
-        List<ISelectable> selectables = new List<ISelectable>();
+        List<Attackable> attackables = new List<Attackable>();
+        World world;
+        VisualEffectsManager vfx;
 
-        bool startClick = true;
-        Vector2 startPos, endPos;
+        public VisualEffectsManager VFX { get { return vfx; } }
+
 
         public GameplayManager(GameWindow window) {
+            world = new World(Vector2.Zero);
+            ConvertUnits.SetDisplayUnitToSimUnitRatio(20.0f); //Not sure what a good number is here?
+            vfx = new VisualEffectsManager();
+
             this.window = window;
-            grid = new Grid();
+            grid = new Grid(world);
             armyController = new PlayerController(this, 0);
 
-            SpawnUnit(new Vector2(150, 150), 0);
-            SpawnUnit(new Vector2(250, 150), 1);
-            SpawnUnit(new Vector2(250, 150), 1);
-            SpawnUnit(new Vector2(290, 150), 0);
+            SpawnUnit(new Vector2(150, 150), 0, UnitTypes.Ranged);
+            SpawnUnit(new Vector2(250, 150), 1, UnitTypes.Ranged);
+            SpawnUnit(new Vector2(252, 150), 1, UnitTypes.Melee);
+            SpawnUnit(new Vector2(290, 150), 0, UnitTypes.Melee);
+            SpawnUnit(new Vector2(150, 170), 0, UnitTypes.Melee);
+            SpawnUnit(new Vector2(250, 170), 1, UnitTypes.Melee);
+            SpawnUnit(new Vector2(252, 170), 1, UnitTypes.Ranged);
+            SpawnUnit(new Vector2(290, 170), 0, UnitTypes.Ranged);
+            SpawnUnit(new Vector2(150, 190), 0, UnitTypes.Ranged);
+            SpawnUnit(new Vector2(250, 190), 1, UnitTypes.Ranged);
+            SpawnUnit(new Vector2(252, 190), 1, UnitTypes.Ranged);
+            SpawnUnit(new Vector2(290, 190), 0, UnitTypes.Ranged);
+            SpawnBase(10,3, 0);
+            SpawnBarracks(14, 6, 0);
             
         }
 
-        public void SpawnUnit(Vector2 position, int faction) {
-            Unit u = new Unit(position, faction);
-            gameObjects.Add(u);
-            controllers.Add(new UnitController(u));
-            selectables.Add(u);
+        public void SpawnUnit(Vector2 position, int faction, UnitTypes type) {
+            Unit u = UnitFactory.SpawnUnit(this, type,position, faction, world);
+            attackables.Add(u);
+            controllers.Add(new UnitController(u,this));
+        }
+
+        public void SpawnBase(int gridX, int gridY, int faction) {
+            Base b = new Base(this, gridX, gridY, faction, world, grid);
+            attackables.Add(b);
+        }
+
+        public void SpawnBarracks(int gridX, int gridY, int faction)
+        {
+            Barracks b = new Barracks(this, gridX, gridY, faction, world, grid);
+            attackables.Add(b);
         }
 
 
         public void Update(GameTime gameTime) {
-            foreach (GameObject go in gameObjects)
-                go.Update(gameTime);
-            foreach (UnitController c in controllers)
-                c.Update(gameTime);
-
-            HandleCollisions();
-
-            if (KeyMouseReader.LeftClick() && grid.Bounds.Contains(KeyMouseReader.mouseState.Position))
-            {
-                if (startClick)
-                {
-                    startClick = false;
-                    startPos = KeyMouseReader.mouseState.Position.ToVector2();
-                }
-                else {
-                    endPos = KeyMouseReader.mouseState.Position.ToVector2();
-                    grid.FindPath(startPos, endPos);
-                    startClick = true;
-
-                }
-            }
 
             armyController.Update(gameTime);
+
+            for (int i = 0; i < attackables.Count; i++){
+                attackables[i].Update(gameTime);
+                if (attackables[i].IsDead())
+                {
+                    if (attackables[i] is Unit)
+                    {
+                        controllers.Remove((attackables[i] as Unit).Controller);
+                        (attackables[i] as Unit).Controller.Detach();
+                        (attackables[i] as Unit).Controller = null;
+                    }
+                    armyController.Deselect(attackables[i]);
+                    attackables[i].DestroyBody();
+                    attackables.RemoveAt(i--);
+                }
+            } 
+            foreach (UnitController c in controllers)
+                c.Update(gameTime);
+            vfx.Update(gameTime);
+
+            //Update physics (variable time step but never less then 30 Hz):
+            world.Step(Math.Min((float)gameTime.ElapsedGameTime.TotalSeconds, 1f / 30f));
         }
 
-        private void HandleCollisions()
+        public void Draw(SpriteBatch spriteBatch)
         {
-            for (int i = 0; i < 10; ++i)
+            grid.Draw(spriteBatch);
+            foreach (Attackable a in attackables)
+                a.Draw(spriteBatch);
+            if (drawDebug)
             {
-                foreach (GameObject go in gameObjects)
+                foreach (UnitController uc in controllers)
                 {
-                    if (go is Unit)
-                    {
-                        CollisionResponse cr = grid.CollisionCheck(go as Unit);
-                        if (cr.collided)
-                        {
-                            go.Position += cr.normal * cr.penetrationDepth;
-                            go.RecalculateBounds();
-                        }
-                    }
-
-                }
-                foreach (GameObject go in gameObjects)
-                {
-                    if (go is Unit)
-                    {
-                        foreach (GameObject ogo in gameObjects)
-                        {
-                            if (ogo is Unit && ogo != go)
-                            {
-                                CollisionResponse cr = CollisionDetection.CollisionCheck((go as Unit).boundingCircle, (ogo as Unit).boundingCircle);
-                                if (cr.collided)
-                                {
-                                    go.Position += cr.normal * cr.penetrationDepth;
-                                    go.RecalculateBounds();
-                                }
-                            }
-
-                        }
-                    }
+                    if (uc.pathToFollow != null)
+                        for (int i = 1; i < uc.pathToFollow.PointCount(); i++)
+                            DebugDraw.DrawLine(spriteBatch, uc.pathToFollow.GetPoint(i - 1), uc.pathToFollow.GetPoint(i));
                 }
             }
+            vfx.Draw(spriteBatch);
+            DebugDraw.DrawRectangle(spriteBatch, (armyController as PlayerController).SelectionBox);
         }
 
-        public ISelectable ClickSelect(Vector2 location) {
-            ISelectable result = null;
-            foreach (ISelectable s in selectables) {
-                if (s.GetBounds().Contains(new Point((int)location.X, (int)location.Y)) && result == null)
+        public IAttackable ClickSelect(Vector2 location) {
+            IAttackable result = null;
+            foreach (Attackable a in attackables) {
+                if (a.Contains(location))
                 {
-                    result = s;
-                    s.Select();
+                    result = a;
+                    a.Select();
                 }
                 else {
-                    s.Deselect();
+                    a.Deselect();
                 }
             }
             return result;
         }
 
-        public List<ISelectable> BoxSelect(Rectangle box) {
-            List<ISelectable> selected = new List<ISelectable>();
-            foreach (ISelectable s in selectables)
+        public List<IAttackable> BoxSelect(Rectangle box)
+        {
+            List<IAttackable> selected = new List<IAttackable>();
+            foreach (IAttackable a in attackables)
             {
-                if (box.Contains(s.GetSelectionPoint()))
+                if (box.Contains(a.GetSelectionPoint()))
                 {
-                    s.Select();
-                    selected.Add(s);
+                    a.Select();
+                    selected.Add(a);
                 }
                 else {
-                    s.Deselect();
+                    a.Deselect();
                 }
             }
             return selected;
@@ -139,17 +151,21 @@ namespace AI_RTS_MonoGame
             return grid.FindPath(a, b);
         }
 
-        public void Draw(SpriteBatch spriteBatch) {
-            grid.Draw(spriteBatch);
-            foreach (GameObject go in gameObjects)
-                go.Draw(spriteBatch);
-            foreach (UnitController uc in controllers)
-            {
-                if(uc.pathToFollow != null)
-                    for (int i = 1; i < uc.pathToFollow.PointCount(); i++)
-                        DebugDraw.DrawLine(spriteBatch, uc.pathToFollow.GetPoint(i - 1), uc.pathToFollow.GetPoint(i));
+        
+
+        public IAttackable GetNearestTarget(Unit u, float range = float.MaxValue) {
+            float distance = float.MaxValue;
+            IAttackable closest = null;
+            foreach (IAttackable a in attackables) {
+                if (a == u || a.Faction == u.Faction)
+                    continue;
+                float d = AttackableHelper.Distance(u,a);
+                if (d < range && d < distance) {
+                    closest = a;
+                    distance = d;
+                }
             }
-            DebugDraw.DrawRectangle(spriteBatch, (armyController as PlayerController).SelectionBox);
+            return closest;
         }
 
     }

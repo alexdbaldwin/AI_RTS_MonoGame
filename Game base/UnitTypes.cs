@@ -5,10 +5,9 @@ using System.Text;
 
 namespace AI_RTS_MonoGame
 {
-    interface IAttackable
+    public enum UnitTypes
     {
-
-        void DealDamage(int dmg);
-        bool IsDead();
+        Ranged,
+        Melee
     }
 }

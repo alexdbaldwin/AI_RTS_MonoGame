@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using FarseerPhysics;
+using FarseerPhysics.Dynamics;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
@@ -10,31 +12,29 @@ namespace AI_RTS_MonoGame
     abstract class GameObject
     {
 
-        protected Vector2 position;
-        protected Rectangle bounds;
+        protected Body body;
+        protected World world;
 
         public Vector2 Position {
-            get { return position; }
-            set { position = value; }
+            get { return ConvertUnits.ToDisplayUnits(body.Position); }
         }
 
-        public Rectangle Bounds {
-            get { return bounds; }
+
+        public GameObject(World world) {
+            this.world = world;
         }
 
-        public GameObject(Vector2 position) {
-            this.position = position;
+        public void DestroyBody() {
+            world.RemoveBody(body);
         }
 
         public abstract void Update(GameTime gameTime);
 
         public abstract void Draw(SpriteBatch spriteBatch);
 
-        public bool Collides(GameObject other) {
-            return bounds.Intersects(other.bounds);
+        public static float Distance(GameObject a, GameObject b) {
+            return (Vector2.Distance(ConvertUnits.ToDisplayUnits(a.body.Position), ConvertUnits.ToDisplayUnits(b.body.Position)));
         }
-
-        public abstract void RecalculateBounds();
 
     }
 }
