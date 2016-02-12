@@ -49,14 +49,29 @@ namespace AI_RTS_MonoGame
             SpawnUnit(new Vector2(290, 190), 0, UnitTypes.Ranged);
             SpawnBase(10,3, 0);
             SpawnBarracks(14, 6, 0);
+
+            SpawnBarracks(18, 8, 1);
             
         }
 
-        public void SpawnUnit(Vector2 position, int faction, UnitTypes type) {
-            Unit u = UnitFactory.SpawnUnit(this, type,position, faction, world);
+        public void SpawnUnit(Vector2 position, int faction, UnitTypes type)
+        {
+            Unit u = UnitFactory.SpawnUnit(this, type, position, faction, world);
+            u.Enable();
             attackables.Add(u);
-            controllers.Add(new UnitController(u,this));
+            controllers.Add(new UnitController(u, this));
         }
+
+        public void SpawnUnit(Unit u, Vector2 position)
+        {
+            u.Enable();
+            u.Position = position;
+            //u.Nudge();
+            attackables.Add(u);
+            controllers.Add(new UnitController(u, this));
+            
+        }
+
 
         public void SpawnBase(int gridX, int gridY, int faction) {
             Base b = new Base(this, gridX, gridY, faction, world, grid);
@@ -66,6 +81,20 @@ namespace AI_RTS_MonoGame
         public void SpawnBarracks(int gridX, int gridY, int faction)
         {
             Barracks b = new Barracks(this, gridX, gridY, faction, world, grid);
+            //TEST:
+            b.QueueRangedUnit();
+            b.QueueRangedUnit();
+            b.QueueRangedUnit();
+            b.QueueRangedUnit();
+            b.QueueRangedUnit();
+            b.QueueRangedUnit();
+            b.QueueRangedUnit();
+            b.QueueMeleeUnit();
+            b.QueueMeleeUnit();
+            b.QueueMeleeUnit();
+            b.QueueMeleeUnit();
+            b.QueueMeleeUnit();
+            b.QueueMeleeUnit();
             attackables.Add(b);
         }
 
@@ -106,42 +135,46 @@ namespace AI_RTS_MonoGame
             {
                 foreach (UnitController uc in controllers)
                 {
-                    if (uc.pathToFollow != null)
-                        for (int i = 1; i < uc.pathToFollow.PointCount(); i++)
-                            DebugDraw.DrawLine(spriteBatch, uc.pathToFollow.GetPoint(i - 1), uc.pathToFollow.GetPoint(i));
+                    if (uc.PathToFollow != null)
+                        for (int i = 1; i < uc.PathToFollow.PointCount(); i++)
+                            DebugDraw.DrawLine(spriteBatch, uc.PathToFollow.GetPoint(i - 1), uc.PathToFollow.GetPoint(i));
                 }
             }
             vfx.Draw(spriteBatch);
             DebugDraw.DrawRectangle(spriteBatch, (armyController as PlayerController).SelectionBox);
         }
 
-        public IAttackable ClickSelect(Vector2 location) {
+        public IAttackable ClickSelect(Vector2 location, int faction) {
             IAttackable result = null;
             foreach (Attackable a in attackables) {
-                if (a.Contains(location))
+                if (a.Contains(location) && a.Faction == faction)
                 {
                     result = a;
                     a.Select();
                 }
-                else {
+                else if (a.Faction == faction) {
                     a.Deselect();
                 }
             }
             return result;
         }
 
-        public List<IAttackable> BoxSelect(Rectangle box)
+        public List<IAttackable> BoxSelect(Rectangle box, int faction)
         {
             List<IAttackable> selected = new List<IAttackable>();
             foreach (IAttackable a in attackables)
             {
-                if (box.Contains(a.GetSelectionPoint()))
+                if (a.Faction == faction)
                 {
-                    a.Select();
-                    selected.Add(a);
-                }
-                else {
-                    a.Deselect();
+                    if (box.Contains(a.GetSelectionPoint()))
+                    {
+                        a.Select();
+                        selected.Add(a);
+                    }
+                    else
+                    {
+                        a.Deselect();
+                    }
                 }
             }
             return selected;
@@ -151,12 +184,26 @@ namespace AI_RTS_MonoGame
             return grid.FindPath(a, b);
         }
 
-        
+        public bool LineOfSight(Attackable a, Attackable b) {
+            return grid.LineOfSight(a.Position, b.Position);
+        }
 
-        public IAttackable GetNearestTarget(Unit u, float range = float.MaxValue) {
+        public Attackable GetAttackableAtLocation(Vector2 location, int faction) {
+            Attackable result = null;
+            foreach (Attackable a in attackables)
+            {
+                if (a.Contains(location) && a.Faction != faction)
+                {
+                    result = a;
+                }
+            }
+            return result;
+        }
+
+        public Attackable GetNearestTarget(Attackable u, float range = float.MaxValue) {
             float distance = float.MaxValue;
-            IAttackable closest = null;
-            foreach (IAttackable a in attackables) {
+            Attackable closest = null;
+            foreach (Attackable a in attackables) {
                 if (a == u || a.Faction == u.Faction)
                     continue;
                 float d = AttackableHelper.Distance(u,a);
@@ -166,6 +213,19 @@ namespace AI_RTS_MonoGame
                 }
             }
             return closest;
+        }
+
+        public bool IsInSightRange(Attackable a, int faction)
+        {
+
+            foreach (Attackable att in attackables)
+            {
+                if (att.Faction == faction && AttackableHelper.Distance(att, a) <= att.VisionRange)
+                {
+                    return true;   
+                }
+            }
+            return false;
         }
 
     }

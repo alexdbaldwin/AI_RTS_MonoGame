@@ -30,5 +30,6 @@ namespace AI_RTS_MonoGame
             selection.Remove(s);
         }
 
+
     }
 }

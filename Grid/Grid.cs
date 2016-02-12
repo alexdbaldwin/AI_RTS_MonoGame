@@ -215,7 +215,7 @@ namespace AI_RTS_MonoGame
             for (int i = 0; i < xDimension; i++) {
                 for (int j = 0; j < yDimension; j++) {
                    
-                    spriteBatch.Draw(AssetManager.GetTexture("pixel"), new Rectangle((int)(i * TileSize), (int)(j * TileSize), (int)TileSize, (int)TileSize), tiles[i, j].passable ? Color.LightGreen : Color.Black);
+                    spriteBatch.Draw(AssetManager.GetTexture("pixel"), new Rectangle((int)(i * TileSize), (int)(j * TileSize), (int)TileSize, (int)TileSize), tiles[i, j].passable ? Color.White : Color.Black);
                 }
             }
             //for(int i = 0; i < testPath.PointCount(); i++)
@@ -251,6 +251,13 @@ namespace AI_RTS_MonoGame
         public void UnblockTile(int x, int y)
         {
             tiles[x, y].passable = true;
+        }
+
+        public bool IsPassable(int x, int y) {
+            if (x < 0 || x >= xDimension || y < 0 || y >= yDimension) {
+                return false;
+            }
+            return tiles[x, y].passable;
         }
 
     }

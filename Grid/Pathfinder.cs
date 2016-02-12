@@ -30,9 +30,9 @@ namespace AI_RTS_MonoGame
             return p;
         }
 
-        public Path FindPath(Tile start, Tile end) {
+        public Path FindPath(Tile start, Tile end, float goalTolerance = 0.0f) {
 
-            if (!start.passable || !end.passable) {
+            if (!start.passable || (!end.passable && goalTolerance <= 0.0f)) {
                 Path p1 = new Path();
                 p1.AddPoint(grid.GetWindowCenterPos(start));
                 return p1;
@@ -52,7 +52,7 @@ namespace AI_RTS_MonoGame
                 closedSet.Add(current);
 
 
-                if (current == end)
+                if (current == end || current.DistanceHeuristic(end) <= goalTolerance)
                     return ReconstructPath(end);
 
                 foreach (Tile t in current.neighbours) {

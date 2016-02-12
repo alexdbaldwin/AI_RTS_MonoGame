@@ -38,7 +38,18 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AI\FSM\FSM.cs" />
+    <Compile Include="AI\FSM\FSMState.cs" />
+    <Compile Include="AI\FSM\StateAttackMove.cs" />
+    <Compile Include="AI\FSM\StateAttack.cs" />
+    <Compile Include="AI\FSM\StateChase.cs" />
+    <Compile Include="AI\FSM\StateHoldPosition.cs" />
+    <Compile Include="AI\FSM\StateIdle.cs" />
+    <Compile Include="AI\FSM\StateMove.cs" />
+    <Compile Include="AI\FSM\UnitFSM.cs" />
+    <Compile Include="AI\FSM\UnitFSMState.cs" />
     <Compile Include="GameObjects\Attackables\Buildings\Barracks.cs" />
+    <Compile Include="GameObjects\Attackables\Buildings\PowerPlant.cs" />
     <Compile Include="Unused\CollisionDetection\BoundingShapes.cs" />
     <Compile Include="Unused\CollisionDetection\CollisionResponse.cs" />
     <Compile Include="AI\Controllers\AIController.cs" />
@@ -98,7 +109,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="AI\FSM\" />
     <Folder Include="AI\Planner\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

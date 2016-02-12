@@ -18,8 +18,8 @@ namespace AI_RTS_MonoGame
         protected Rectangle bounds;
         protected Grid grid;
 
-        public Building(GameplayManager gm, int gridX, int gridY, int faction, World world, int tileWidth, int tileHeight, int HP, Grid grid)
-            : base(gm, new Vector2(((float)gridX + (float)tileWidth / 2.0f) * Grid.TileSize, ((float)gridY + (float)tileHeight / 2.0f) * Grid.TileSize), faction, HP, world)
+        public Building(GameplayManager gm, int gridX, int gridY, int faction, World world, int tileWidth, int tileHeight, int HP, float visionRange, Grid grid)
+            : base(gm, new Vector2(((float)gridX + (float)tileWidth / 2.0f) * Grid.TileSize, ((float)gridY + (float)tileHeight / 2.0f) * Grid.TileSize), faction, HP, visionRange, world)
         {
             body = BodyFactory.CreateRectangle(world, ConvertUnits.ToSimUnits(tileWidth * Grid.TileSize), ConvertUnits.ToSimUnits(tileHeight * Grid.TileSize), 10, ConvertUnits.ToSimUnits(new Vector2(((float)gridX + (float)tileWidth / 2.0f) * Grid.TileSize, ((float)gridY + (float)tileHeight / 2.0f) * Grid.TileSize)));
             body.BodyType = BodyType.Static;
@@ -87,6 +87,7 @@ namespace AI_RTS_MonoGame
             if (selected)
                 spriteBatch.Draw(AssetManager.GetTexture("pixel"), Position, null, Factions.GetFactionSelectionColor(faction), 0, new Vector2(0.5f, 0.5f), new Vector2(tileWidth * 1.1f * Grid.TileSize, tileHeight * 1.1f * Grid.TileSize), SpriteEffects.None, 0);
             spriteBatch.Draw(AssetManager.GetTexture("pixel"), Position, null, Factions.GetFactionColor(faction), 0, new Vector2(0.5f, 0.5f), new Vector2(tileWidth * Grid.TileSize, tileHeight * Grid.TileSize), SpriteEffects.None, 0);
+            base.Draw(spriteBatch);
         }
 
         public override bool Contains(Vector2 point)

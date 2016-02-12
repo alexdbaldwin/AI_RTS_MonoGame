@@ -1,5 +1,7 @@
-﻿using FarseerPhysics.Dynamics;
+﻿using FarseerPhysics;
+using FarseerPhysics.Dynamics;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +18,8 @@ namespace AI_RTS_MonoGame
         protected List<DelayedDamage> delayedDamage = new List<DelayedDamage>();
         protected bool selected = false;
         protected float radius;
+        protected float visionRange = 100.0f;
+        public float VisionRange { get { return visionRange; } }
 
         public float Radius
         {
@@ -27,11 +31,12 @@ namespace AI_RTS_MonoGame
             get { return faction; }
         }
 
-        public Attackable(GameplayManager gm, Vector2 position, int faction, int HP, World world) : base(world) {
+        public Attackable(GameplayManager gm, Vector2 position, int faction, int HP, float visionRange, World world) : base(world) {
             this.gm = gm;
             this.faction = faction;
             this.maxHP = HP;
             this.HP = HP;
+            this.visionRange = visionRange;
         }
 
         public virtual void DealDamage(int dmg, float delay = 0.0f)
@@ -79,6 +84,14 @@ namespace AI_RTS_MonoGame
                 }
             }
         }
+
+        public override void Draw(SpriteBatch spriteBatch)
+        {
+            //Draw health bar!
+            spriteBatch.Draw(AssetManager.GetTexture("pixel"), ConvertUnits.ToDisplayUnits(body.Position) + new Vector2(0, -radius - 3.5f), null, Color.LimeGreen, 0, new Vector2(0.5f, 0.5f), new Vector2(((float)HP / (float)maxHP) * radius*2.0f, 5.0f), SpriteEffects.None, 0);
+        }
+
+        
 
     }
 }

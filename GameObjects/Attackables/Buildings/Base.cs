@@ -9,7 +9,7 @@ namespace AI_RTS_MonoGame
 {
     class Base : Building
     {
-        public Base(GameplayManager gm, int gridX, int gridY, int faction, World world, Grid grid) : base(gm,gridX,gridY,faction,world,3,3,1000, grid) { 
+        public Base(GameplayManager gm, int gridX, int gridY, int faction, World world, Grid grid) : base(gm,gridX,gridY,faction,world,3,3,1000,200.0f, grid) { 
         
         }
 

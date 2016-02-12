@@ -11,6 +11,7 @@ namespace AI_RTS_MonoGame
     {
 
         Rectangle selectionBox = new Rectangle();
+        bool aPressed = false;
 
         public Rectangle SelectionBox {
             get {
@@ -35,25 +36,70 @@ namespace AI_RTS_MonoGame
             
             if (KeyMouseReader.LeftClickInPlace())
             {
-                selection.Clear();
-                IAttackable s = gm.ClickSelect(KeyMouseReader.mouseState.Position.ToVector2());
-                if(s != null)
-                    selection.Add(s);
+                if (aPressed) {
+                    //A-move selected units
+                    foreach (IAttackable s in selection)
+                    {
+                        if (s is Unit)
+                            (s as Unit).Controller.AttackMove(KeyMouseReader.mouseState.Position.ToVector2());
+                    }
+                }
+                else
+                {
+                    selection.Clear();
+                    IAttackable s = gm.ClickSelect(KeyMouseReader.mouseState.Position.ToVector2(), faction);
+                    if (s != null)
+                        selection.Add(s);
+                }
                 selectionBox = new Rectangle();
             }
             else if (KeyMouseReader.LeftButtonReleased()){
-                selection = gm.BoxSelect(selectionBox);
+                selection = gm.BoxSelect(selectionBox, faction);
                 selectionBox = new Rectangle();
+            }
+
+            if (KeyMouseReader.LeftButtonReleased())
+                aPressed = false;
+
+            if (KeyMouseReader.KeyPressed(Keys.S)) { //Stop
+                foreach (IAttackable s in selection)
+                {
+                    if (s is Unit)
+                        (s as Unit).Controller.Stop();
+                }
+            }
+            if (KeyMouseReader.KeyPressed(Keys.A)) { //Attack
+                aPressed = true;
+            }
+            if (KeyMouseReader.KeyPressed(Keys.H)) { //Hold position
+                foreach (IAttackable s in selection)
+                {
+                    if (s is Unit)
+                        (s as Unit).Controller.HoldPosition();
+                }
             }
 
 
             //UGLY!!!
             if (KeyMouseReader.RightClick()) {
-                foreach (IAttackable s in selection)
+                Attackable a = gm.GetAttackableAtLocation(KeyMouseReader.mouseState.Position.ToVector2(),faction);
+                if (a != null)
                 {
-                    if(s is Unit)
-                        (s as Unit).Controller.FollowPath(gm.GetPath((s as Unit).Position, KeyMouseReader.mouseState.Position.ToVector2()));
+                    foreach (IAttackable s in selection)
+                    {
+                        if (s is Unit)
+                            (s as Unit).Controller.Attack(a);
+                    }
                 }
+                else {
+                    foreach (IAttackable s in selection)
+                    {
+                        if (s is Unit)
+                            (s as Unit).Controller.FollowPath(gm.GetPath((s as Unit).Position, KeyMouseReader.mouseState.Position.ToVector2()));
+                    }
+                }
+
+                
             }
         }
 

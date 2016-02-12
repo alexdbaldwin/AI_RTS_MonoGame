@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace AI_RTS_MonoGame
 {
@@ -13,6 +14,7 @@ namespace AI_RTS_MonoGame
         SpriteBatch spriteBatch;
 
         GameplayManager gm;
+        public static Random rand;
 
         public Game1()
         {
@@ -21,6 +23,7 @@ namespace AI_RTS_MonoGame
             IsMouseVisible = true;
             graphics.PreferredBackBufferWidth = 1000;
             graphics.PreferredBackBufferHeight = 1000;
+            rand = new Random();
         }
 
         /// <summary>

@@ -9,7 +9,8 @@ namespace AI_RTS_MonoGame
     class Tile : IComparable<Tile>
     {
         public int gridX, gridY;
-        public bool passable = true;
+        public bool passable = true; 
+        //public Building Building { get; set; }
 
         public List<Tile> neighbours = new List<Tile>();
 

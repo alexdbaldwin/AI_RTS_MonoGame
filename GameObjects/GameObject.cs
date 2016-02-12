@@ -17,6 +17,11 @@ namespace AI_RTS_MonoGame
 
         public Vector2 Position {
             get { return ConvertUnits.ToDisplayUnits(body.Position); }
+            set { body.Position = ConvertUnits.ToSimUnits(value); }
+        }
+
+        public void Nudge() {
+            body.ApplyForce(new Vector2(1, 0) * 1f);
         }
 
 
